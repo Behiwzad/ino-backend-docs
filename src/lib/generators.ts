@@ -425,7 +425,7 @@ export function openapi() {
   });
   return JSON.stringify({
     openapi: "3.1.0",
-    info: { title: "Ino API", version: "1.0.0", description: "API پیشنهادی اینو — اپ مشتری، پنل سالن و پنل تیم اینو. تولیدشده از دیزاین Figma." },
+    info: { title: "Ino API", version: "1.0.0", description: "API پیشنهادی اینو — اپ مشتری، پنل سالن و پنل تیم اینو. " },
     servers: [{ url: "https://api.ino.app" }],
     tags: apiGroups.map((g) => ({ name: g.title, description: g.app })),
     paths,

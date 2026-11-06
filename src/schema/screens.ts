@@ -1,5 +1,4 @@
-export const FIGMA_FILE = "https://www.figma.com/design/Lh9zzmtRQdRGxFfrWKXGoc/Ino-App";
-export const figmaLink = (nodeId: string) => `${FIGMA_FILE}?node-id=${nodeId.replace(":", "-")}`;
+/* App screen inventory: which tables and endpoints each screen of the customer app and staff panel uses. */
 
 export interface ScreenSection {
   panel: "customer" | "staff";

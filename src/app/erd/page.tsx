@@ -1,7 +1,7 @@
 import { ErdCanvas } from "@/components/erd/ErdCanvas";
 import { getSeed } from "@/schema/seed";
 
-export const metadata = { title: "ERD Canvas · Ino Backend" };
+export const metadata = { title: "کانوای ERD" };
 
 export default function ErdPage() {
   const seed = getSeed();

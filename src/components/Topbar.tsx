@@ -3,9 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "./Icon";
+import { LogoMark } from "./Logo";
 import { tables, domainMap } from "@/schema/tables";
 import { enums } from "@/schema/enums";
 import { endpoints } from "@/schema/api";
+import { nav } from "@/lib/ui";
 
 type Hit = { label: string; sub: string; href: string; kind: string; color?: string };
 
@@ -20,10 +22,7 @@ export function Topbar() {
   useEffect(() => {
     setTheme(document.documentElement.dataset.theme ?? "light");
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOpen((o) => !o);
-      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setOpen((o) => !o); }
       if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
@@ -45,7 +44,7 @@ export function Topbar() {
   );
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return all.filter((h) => h.kind === "جدول").slice(0, 12);
+    if (!s) return all.filter((h) => h.kind === "جدول").slice(0, 10);
     return all.filter((h) => h.label.toLowerCase().includes(s) || h.sub.toLowerCase().includes(s)).slice(0, 40);
   }, [q, all]);
   useEffect(() => setSel(0), [q]);
@@ -60,31 +59,24 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface/80 px-4 backdrop-blur-xl md:px-6">
-        <Link href="/" className="brand-gradient grid h-8 w-8 place-items-center rounded-xl text-sm font-black text-white lg:hidden">ا</Link>
-        <button onClick={() => setOpen(true)} className="flex h-9 w-full max-w-md items-center gap-2 rounded-full border border-line bg-surface-2 px-4 text-[13px] text-muted transition hover:border-line-strong">
-          <Icon name="search" size={16} />
-          <span className="flex-1 text-right">جستجوی جدول، ستون، enum یا API…</span>
-          <kbd className="mono hidden rounded-md border border-line bg-surface px-1.5 text-[11px] sm:inline" dir="ltr">Ctrl K</kbd>
+      <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b border-line bg-surface/85 px-3 backdrop-blur-xl sm:gap-3 md:px-6">
+        <button onClick={nav.open} className="btn btn-ghost btn-icon lg:hidden" aria-label="باز کردن منو"><Icon name="menu" size={22} /></button>
+        <Link href="/" className="lg:hidden" aria-label="اینو"><LogoMark size={32} /></Link>
+        <button onClick={() => setOpen(true)} className="field ms-1 w-full max-w-md cursor-text !h-10 text-[13.5px] hover:!shadow-[0_1px_3px_#1717171f,0_0_0_1px_var(--border-strong)]" aria-label="جستجو">
+          <Icon name="search" size={18} />
+          <span className="flex-1 truncate text-right">جستجو<span className="hidden sm:inline"> در جدول، ستون، enum یا API…</span></span>
+          <span className="kbd mono hidden sm:inline-grid" dir="ltr">Ctrl K</span>
         </button>
         <div className="flex-1" />
-        <nav className="hidden items-center gap-1 md:flex lg:hidden">
-          {[["/erd", "ERD"], ["/tables", "جداول"], ["/api-docs", "API"], ["/exports", "خروجی"]].map(([h, l]) => (
-            <Link key={h} href={h} className="rounded-full px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:bg-surface-2">{l}</Link>
-          ))}
-        </nav>
-        <a href="https://www.figma.com/design/Lh9zzmtRQdRGxFfrWKXGoc/Ino-App" target="_blank" rel="noreferrer" className="hidden h-9 items-center gap-2 rounded-full border border-line px-3 text-[12.5px] font-semibold text-ink-2 hover:bg-surface-2 sm:flex">
-          <Icon name="figma" size={15} /> Figma
-        </a>
-        <button onClick={toggleTheme} aria-label="تغییر تم" className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink-2 hover:bg-surface-2">
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
-        </button>
+        <a href="https://github.com/Behiwzad/ino-backend-docs" target="_blank" rel="noreferrer" className="btn btn-ghost btn-icon hidden sm:inline-flex" aria-label="GitHub"><Icon name="github" size={20} /></a>
+        <button onClick={toggleTheme} aria-label="تغییر تم" className="btn btn-stroke btn-icon"><Icon name={theme === "dark" ? "sun" : "moon"} size={19} /></button>
       </header>
+
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 p-4 pt-[12vh] backdrop-blur-sm" onClick={() => setOpen(false)}>
-          <div className="card fade-up w-full max-w-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/35 p-3 pt-[8vh] backdrop-blur-sm sm:p-4 sm:pt-[12vh]" onClick={() => setOpen(false)}>
+          <div className="popover fade-up w-full max-w-xl overflow-hidden" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="جستجو">
             <div className="flex items-center gap-3 border-b border-line px-4">
-              <Icon name="search" className="text-muted" />
+              <Icon name="search" className="text-muted" size={20} />
               <input
                 ref={inputRef}
                 value={q}
@@ -97,15 +89,16 @@ export function Topbar() {
                 placeholder="مثلاً bookings، deposit، /v1/bookings…"
                 className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted"
               />
+              <button onClick={() => setOpen(false)} className="btn btn-ghost btn-xs">Esc</button>
             </div>
-            <ul className="max-h-[55vh] overflow-y-auto p-2">
+            <ul className="max-h-[60vh] overflow-y-auto p-2">
               {hits.map((h, i) => (
                 <li key={h.kind + h.label}>
-                  <button onMouseEnter={() => setSel(i)} onClick={() => go(h)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-right ${i === sel ? "bg-primary-soft" : ""}`}>
-                    <span className="chip bg-surface-2 text-[10.5px] text-ink-2">{h.kind}</span>
+                  <button onMouseEnter={() => setSel(i)} onClick={() => go(h)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition ${i === sel ? "bg-surface-2" : ""}`}>
+                    <span className="badge badge-gray w-12 justify-center">{h.kind}</span>
                     {h.color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: h.color }} />}
                     <span className="mono truncate text-[13px] font-semibold" dir="ltr">{h.label}</span>
-                    <span className="mr-auto truncate text-[12px] text-muted">{h.sub}</span>
+                    <span className="ms-auto hidden truncate text-[12px] text-muted sm:inline">{h.sub}</span>
                   </button>
                 </li>
               ))}

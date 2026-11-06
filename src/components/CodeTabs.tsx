@@ -1,37 +1,50 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon } from "./Icon";
+import { highlight, type Lang } from "@/lib/hl";
 
 export interface CodeTab {
   key: string;
   label: string;
-  html: string;
   raw: string;
+  lang: Lang;
   file?: string;
 }
 
-export function CopyButton({ text, getText, label = "کپی" }: { text?: string; getText?: () => Promise<string>; label?: string }) {
+export function CopyButton({ text, getText, label = "کپی", small = true }: { text?: string; getText?: () => Promise<string>; label?: string; small?: boolean }) {
   const [done, setDone] = useState(false);
   return (
     <button
+      type="button"
       onClick={async () => {
         const t = text ?? (getText ? await getText() : "");
-        await navigator.clipboard.writeText(t);
+        try { await navigator.clipboard.writeText(t); } catch {}
         setDone(true);
         setTimeout(() => setDone(false), 1400);
       }}
-      className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-[12px] font-semibold text-ink-2 hover:bg-surface-2"
+      className={`btn btn-stroke ${small ? "btn-sm" : ""}`}
     >
-      <Icon name={done ? "check" : "copy"} size={14} /> {done ? "کپی شد" : label}
+      <Icon name={done ? "check" : "copy"} size={15} className={done ? "text-success" : ""} />
+      <span className="hidden sm:inline">{done ? "کپی شد" : label}</span>
     </button>
   );
 }
 
-export function downloadText(text: string, file: string) {
+export function downloadText(text: string, file: string, type = "text/plain;charset=utf-8") {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  a.href = URL.createObjectURL(new Blob([text], { type }));
   a.download = file;
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+export function CodeBlock({ raw, lang, maxHeight = 520 }: { raw: string; lang: Lang; maxHeight?: number }) {
+  const html = useMemo(() => highlight(raw, lang), [raw, lang]);
+  return (
+    <div className="code">
+      <pre style={{ maxHeight }} dangerouslySetInnerHTML={{ __html: html }} />
+    </div>
+  );
 }
 
 export function CodeTabs({ tabs, maxHeight = 520 }: { tabs: CodeTab[]; maxHeight?: number }) {
@@ -39,19 +52,21 @@ export function CodeTabs({ tabs, maxHeight = 520 }: { tabs: CodeTab[]; maxHeight
   const cur = tabs.find((t) => t.key === k) ?? tabs[0];
   return (
     <div className="card overflow-hidden">
-      <div className="flex flex-wrap items-center gap-1 border-b border-line bg-surface-2/60 p-1.5">
-        {tabs.map((t) => (
-          <button key={t.key} onClick={() => setK(t.key)} className={`h-8 rounded-full px-3 text-[12.5px] font-semibold transition ${t.key === cur.key ? "bg-surface text-primary shadow-sm" : "text-ink-2 hover:text-ink"}`}>{t.label}</button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2 border-b border-line p-2">
+        <div className="seg" role="tablist">
+          {tabs.map((t) => (
+            <button key={t.key} role="tab" aria-selected={t.key === cur.key} onClick={() => setK(t.key)} className="seg-item">{t.label}</button>
+          ))}
+        </div>
         <div className="flex-1" />
         <CopyButton text={cur.raw} />
         {cur.file && (
-          <button onClick={() => downloadText(cur.raw, cur.file!)} className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-[12px] font-semibold text-ink-2 hover:bg-surface-2">
-            <Icon name="download" size={14} /> دانلود
+          <button type="button" onClick={() => downloadText(cur.raw, cur.file!)} className="btn btn-stroke btn-sm">
+            <Icon name="download" size={15} /> <span className="hidden sm:inline">دانلود</span>
           </button>
         )}
       </div>
-      <div className="code-wrap overflow-auto" style={{ maxHeight }} dangerouslySetInnerHTML={{ __html: cur.html }} />
+      <CodeBlock raw={cur.raw} lang={cur.lang} maxHeight={maxHeight} />
     </div>
   );
 }

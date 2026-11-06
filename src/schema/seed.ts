@@ -1,4 +1,4 @@
-/* Deterministic, FK-consistent fake data built from the names/values that appear in the Figma screens.
+/* Deterministic, FK-consistent fake data built from the names/values that appear in the app screens.
    Derived tables (booking money, escrow, wallets, ledger, CRM aggregates) are computed, not hand-typed. */
 
 export type Row = Record<string, string | number | boolean | null | object>;

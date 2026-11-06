@@ -1,31 +1,37 @@
 "use client";
-import { memo } from "react";
+import { createContext, memo, useContext } from "react";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import type { Table } from "@/schema/types";
 import { domainMap } from "@/schema/tables";
+import { Icon } from "../Icon";
 
-export type TableNodeData = {
-  table: Table;
-  compact: boolean;
-  dim: boolean;
-  active: boolean;
-  rows: number;
-  referenced: string[]; // columns referenced by others
-  onOpen: (name: string) => void;
-};
+/* Hover/selection state lives in context so dragging never re-creates node data (keeps nodes memoized). */
+export interface ErdView {
+  active: string | null;
+  neighbors: Set<string> | null;
+  compactAll: boolean;
+  focus?: string;
+}
+export const ErdViewCtx = createContext<ErdView>({ active: null, neighbors: null, compactAll: false });
+
+export type TableNodeData = { table: Table; rows: number; referenced: string[] };
 export type TableFlowNode = Node<TableNodeData, "table">;
 
 export const ROW_H = 24;
 export const HEAD_H = 52;
-export const NODE_W = 270;
+export const NODE_W = 272;
 
 const hidden: React.CSSProperties = { opacity: 0, width: 6, height: 6, minWidth: 0, minHeight: 0, border: 0, background: "transparent", pointerEvents: "none" };
 
+export function isCompact(name: string, v: Pick<ErdView, "compactAll" | "focus">) {
+  return v.compactAll || (!!v.focus && v.focus !== name);
+}
 export function visibleColumns(t: Table, compact: boolean) {
   return compact ? t.columns.filter((c) => c.pk || c.ref || c.unique) : t.columns;
 }
 export function nodeHeight(t: Table, compact: boolean) {
-  return HEAD_H + visibleColumns(t, compact).length * ROW_H + 10;
+  const cols = visibleColumns(t, compact).length;
+  return HEAD_H + cols * ROW_H + 10 + (compact && cols < t.columns.length ? 18 : 0);
 }
 
 function typeLabel(c: Table["columns"][number]) {
@@ -36,35 +42,35 @@ function typeLabel(c: Table["columns"][number]) {
 }
 
 export const TableNode = memo(function TableNode({ data, selected }: NodeProps<TableFlowNode>) {
-  const { table: t, compact, dim, active, rows, referenced, onOpen } = data;
+  const { table: t, rows, referenced } = data;
+  const view = useContext(ErdViewCtx);
+  const compact = isCompact(t.name, view);
+  const dim = !!view.neighbors && !view.neighbors.has(t.name);
+  const active = view.active === t.name;
   const d = domainMap[t.domain];
   const cols = visibleColumns(t, compact);
   return (
     <div
       dir="ltr"
-      onDoubleClick={() => onOpen(t.name)}
-      className="erd-table overflow-hidden rounded-[14px] border bg-surface transition-[opacity,box-shadow,border-color] duration-150"
+      className="erd-table cursor-pointer overflow-hidden rounded-[14px] bg-surface transition-[opacity,box-shadow] duration-150"
       style={{
         width: NODE_W,
-        opacity: dim ? 0.22 : 1,
-        borderColor: selected || active ? d.color : "var(--border)",
-        boxShadow: selected || active ? `0 0 0 3px ${d.color}33, var(--shadow)` : "var(--shadow)",
+        opacity: dim ? 0.25 : 1,
+        boxShadow: selected || active ? `0 0 0 2px ${d.color}, 0 0 0 6px ${d.color}26, 0 10px 24px -12px #14143a40` : "var(--shadow)",
       }}
     >
-      <div className="relative flex items-center gap-2 px-3" style={{ height: HEAD_H, background: `linear-gradient(180deg, ${d.color}1f, transparent)` }}>
+      <div className="relative flex items-center gap-2 px-3" style={{ height: HEAD_H, background: `linear-gradient(180deg, ${d.color}1c, transparent)` }}>
         <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: d.color }} />
-        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-white" style={{ background: d.color }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5h18v14H3zM3 10h18M9 5v14" /></svg>
-        </div>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-white" style={{ background: d.color }}><Icon name="table" size={15} stroke={1.8} /></span>
         <div className="min-w-0 flex-1">
-          <div className="mono truncate text-[13px] font-bold text-ink">{t.name}</div>
-          <div className="truncate text-[11px] text-muted" dir="rtl" style={{ textAlign: "left" }}>{t.title}</div>
+          <div className="mono truncate text-[13px] font-semibold text-ink">{t.name}</div>
+          <div className="truncate text-[11.5px] text-muted" dir="rtl" style={{ textAlign: "left" }}>{t.title}</div>
         </div>
-        <span className="mono rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-ink-2" title="ردیف‌های دیتای فیک">{rows}r</span>
+        <span className="badge badge-gray mono !h-5 !px-1.5 !text-[10px]" title="ردیف‌های دیتای فیک">{rows}</span>
       </div>
       <div className="pb-[10px]">
         {cols.map((c) => (
-          <div key={c.name} className="relative flex items-center gap-1.5 px-3 text-[11.5px] hover:bg-surface-2" style={{ height: ROW_H }}>
+          <div key={c.name} className="relative flex items-center gap-1.5 px-3 text-[11.5px]" style={{ height: ROW_H }}>
             {c.ref && (
               <>
                 <Handle id={`s-L-${c.name}`} type="source" position={Position.Left} style={{ ...hidden, left: -3 }} isConnectable={false} />
@@ -77,15 +83,15 @@ export const TableNode = memo(function TableNode({ data, selected }: NodeProps<T
                 <Handle id={`t-R-${c.name}`} type="target" position={Position.Right} style={{ ...hidden, right: -3 }} isConnectable={false} />
               </>
             )}
-            <span className="w-4 shrink-0 text-center text-[10px]">
-              {c.pk ? <span style={{ color: "#efb100" }}>🔑</span> : c.ref ? <span style={{ color: d.color }}>⛓</span> : c.unique ? <span className="text-muted">◆</span> : ""}
+            <span className="grid w-4 shrink-0 place-items-center" style={{ color: c.pk ? "#efb100" : c.ref ? d.color : "var(--muted)" }}>
+              {c.pk ? <Icon name="key" size={13} stroke={1.9} /> : c.ref ? <Icon name="link" size={13} stroke={1.9} /> : <span className={`rounded-full bg-current ${c.unique ? "h-1.5 w-1.5" : "h-1 w-1 opacity-50"}`} />}
             </span>
-            <span className={`mono truncate ${c.pk ? "font-bold text-ink" : c.ref ? "font-semibold" : "text-ink-2"}`} style={c.ref ? { color: d.color } : undefined}>{c.name}</span>
+            <span className={`mono truncate ${c.pk ? "font-semibold text-ink" : c.ref ? "font-semibold" : "text-ink-2"}`} style={c.ref ? { color: d.color } : undefined}>{c.name}</span>
             {!c.nullable && !c.pk && <span className="text-[9px] text-danger" title="NOT NULL">*</span>}
             <span className="mono ml-auto truncate pl-2 text-[10.5px] text-muted">{typeLabel(c)}</span>
           </div>
         ))}
-        {compact && cols.length < t.columns.length && <div className="px-3 pt-1 text-[10.5px] text-muted">+{t.columns.length - cols.length} ستون دیگر</div>}
+        {compact && cols.length < t.columns.length && <div className="px-3 pt-0.5 text-[11px] text-muted" dir="rtl" style={{ textAlign: "left", height: 18 }}>+{t.columns.length - cols.length} ستون دیگر</div>}
       </div>
     </div>
   );
@@ -96,9 +102,9 @@ export type ZoneFlowNode = Node<ZoneNodeData, "zone">;
 
 export const ZoneNode = memo(function ZoneNode({ data }: NodeProps<ZoneFlowNode>) {
   return (
-    <div className="rounded-[28px] border-2 border-dashed" style={{ width: data.w, height: data.h, borderColor: `${data.color}55`, background: `${data.color}0a` }}>
-      <div className="flex items-center gap-2 px-6 pt-4" dir="rtl">
-        <span className="h-3 w-3 rounded-full" style={{ background: data.color }} />
+    <div className="rounded-[28px] border-2 border-dashed" style={{ width: data.w, height: data.h, borderColor: `${data.color}50`, background: `${data.color}08` }}>
+      <div className="zone-handle m-3 inline-flex items-center gap-2.5 rounded-full px-4 py-2 transition hover:brightness-95" dir="rtl" style={{ background: `${data.color}18` }} title="برای جابه‌جایی کل دامنه بکشید">
+        <Icon name="move" size={20} className="opacity-70" />
         <span className="text-[22px] font-extrabold" style={{ color: data.color }}>{data.title}</span>
         <span className="mono text-[14px] text-muted">{data.en} · {data.count}</span>
       </div>

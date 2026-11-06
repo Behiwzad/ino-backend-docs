@@ -77,7 +77,7 @@ export interface Table {
   columns: Column[];
   indexes?: Index[];
   checks?: Check[];
-  /** Figma node ids of screens where this data is visible / created */
+  /** ids of app screens (see screens.ts) where this data is shown or created */
   screens?: string[];
   /** Short business rules tied to this table */
   rules?: string[];
