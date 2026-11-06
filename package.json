@@ -6,7 +6,9 @@
     "dev": "next dev -p 3210",
     "build": "next build",
     "start": "next start -p 3210",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "node scripts/auto-deploy.mjs",
+    "deploy:watch": "node scripts/auto-deploy.mjs --watch"
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
