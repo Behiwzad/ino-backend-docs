@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/auto-deploy.mjs\" --hook 2>/dev/null || true",
+            "timeout": 240,
+            "statusMessage": "Deploying to GitHub Pages…"
+          }
+        ]
+      }
+    ]
+  }
+}

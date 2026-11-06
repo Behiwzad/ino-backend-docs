@@ -56,7 +56,8 @@ function deployOnce() {
         return say(`⚠ auto-deploy: TypeScript errors, changes NOT pushed (live site unchanged). ${out}`);
       }
     }
-    const files = changed.map((l) => l.slice(3).replace(/^"|"$/g, ""));
+    // porcelain lines look like " M file", "?? file", "R  a -> b" (first line arrives trimmed)
+    const files = changed.map((l) => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, ""));
     const shown = files.slice(0, 4).join(", ") + (files.length > 4 ? ` +${files.length - 4} more` : "");
     git("add", "-A");
     git("commit", "-q", "-m", `auto: update ${shown}`);

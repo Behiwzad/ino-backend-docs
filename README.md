@@ -24,11 +24,27 @@ npm run dev        # http://localhost:3210
 | `/rules` | قوانین بیزینسی با لینک به اسکرین |
 | `/exports` | دانلود همه خروجی‌ها |
 
+## سایت زنده
+
+**https://behiwzad.github.io/ino-backend-docs/**
+
+هر push به `main` با GitHub Actions (`.github/workflows/deploy.yml`) سایت استاتیک را می‌سازد و روی GitHub Pages منتشر می‌کند (حدود ۱ تا ۲ دقیقه).
+
+### استقرار خودکار
+
+| روش | چه موقع push می‌شود |
+| --- | --- |
+| Claude Code (هوک `Stop` در `.claude/settings.json`) | آخر هر نوبتی که Claude در این پروژه تغییری داده |
+| `npm run deploy:watch` | ۸ ثانیه بعد از آخرین ذخیره‌ی شما (تا وقتی ترمینال باز است) |
+| `npm run deploy` | یک بار، دستی |
+
+قبل از هر push، `tsc --noEmit` اجرا می‌شود؛ اگر خطا داشته باشد چیزی push نمی‌شود و سایت زنده دست نمی‌خورد. لاگ‌ها در `.auto-deploy.log`.
+
 ## خروجی‌ها (قابل curl)
 
-`/export/<key>` با کلیدهای:
-`postgres` · `mysql` · `seed-pg` · `seed-mysql` · `fixtures` · `prisma` · `drizzle` · `laravel` · `typescript` · `zod` · `jsonschema` · `openapi` · `dbml` · `mermaid`
-و `/export/csv/<table>` برای هر جدول.
+فایل‌ها موقع build ساخته می‌شوند: `/export/<file>` مثل
+`ino.postgres.sql` · `ino.mysql.sql` · `ino.seed.postgres.sql` · `ino.seed.mysql.sql` · `ino.fixtures.json` · `schema.prisma` · `schema.ts` (Drizzle) · `ino.types.ts` · `ino.zod.ts` · `ino.schema.json` · `ino.openapi.json` · `ino.dbml` · `ino.mmd`
+و `/export/csv/<table>.csv` برای هر جدول.
 
 ## افزودن ویژگی جدید
 
