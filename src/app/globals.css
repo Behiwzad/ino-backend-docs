@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Ino design-system tokens (from Figma: 🎨 Product Colors / 🌈 Product Color Tokens) ── */
+:root {
+  --violet-50: #eff2ff;
+  --violet-100: #e0e5ff;
+  --violet-200: #c7ceff;
+  --violet-300: #a5acff;
+  --violet-400: #827cff;
+  --violet-500: #694ffd; /* ⭐ brand/primary/500 */
+  --violet-600: #5924f2;
+  --violet-700: #4d1bd4;
+  --violet-900: #372884;
+  --violet-950: #22194c;
+  --fuchsia-50: #fbf4ff;
+  --fuchsia-200: #ecd0fe;
+  --fuchsia-500: #c93efe; /* ⭐ brand/secondary/500 */
+  --fuchsia-700: #9710be;
+  --royal-50: #f0f6ff;
+  --royal-500: #3e73fe; /* ⭐ brand/tertiary/500 */
+  --success: #00c951;
+  --danger: #fb2c36;
+  --warning: #efb100;
+
+  --bg: #f7f7f9;
+  --surface: #ffffff;
+  --surface-2: #f4f4f6;
+  --border: #ebebeb;
+  --border-strong: #dadada;
+  --text: #171717; /* 📝 text/950 */
+  --text-2: #5c5c5c; /* 📝 text/600 */
+  --muted: #a3a3a3; /* 📝 text/400 */
+  --icon: #141b34; /* 🧩 icon/950 */
+  --primary: var(--violet-500);
+  --primary-soft: var(--violet-50);
+  --primary-strong: var(--violet-950);
+  --ring: #694ffd33;
+  --grid-dot: #d9d9e3;
+  --shadow: 0 1px 2px rgb(20 27 52 / 0.04), 0 8px 24px -12px rgb(20 27 52 / 0.12);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0c0b14;
+  --surface: #14121f;
+  --surface-2: #1b1929;
+  --border: #262338;
+  --border-strong: #353149;
+  --text: #f3f2f8;
+  --text-2: #b9b6c9;
+  --muted: #7d7993;
+  --icon: #e7e5f2;
+  --primary: #827cff;
+  --primary-soft: #694ffd26;
+  --primary-strong: #c7ceff;
+  --ring: #827cff40;
+  --grid-dot: #2a2740;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-strong: var(--primary-strong);
+  --color-violet: var(--violet-500);
+  --color-fuchsia: var(--fuchsia-500);
+  --color-royal: var(--royal-500);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-vazir), "Yekan Bakh FaNum VF", system-ui, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, SFMono-Regular, monospace;
+  --radius-card: 16px;
+  --radius-sheet: 24px;
+  --shadow-card: var(--shadow);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01";
+}
+::selection {
+  background: var(--ring);
+}
+
+.mono,
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* brand gradient used in hero / accents */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--violet-500) 0%, var(--fuchsia-500) 60%, #ff7ad9 100%);
+}
+.brand-text {
+  background: linear-gradient(90deg, var(--violet-500), var(--fuchsia-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dot-grid {
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* shiki dual theme */
+.shiki,
+.shiki span {
+  background-color: transparent !important;
+}
+[data-theme="dark"] .shiki,
+[data-theme="dark"] .shiki span {
+  color: var(--shiki-dark) !important;
+}
+.code-wrap pre {
+  padding: 16px 18px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  overflow: auto;
+  direction: ltr;
+  text-align: left;
+  tab-size: 2;
+}
+
+/* grid/flex children must be allowed to shrink around long mono strings (prevents page-level horizontal scroll) */
+.grid > *,
+.flex > .truncate,
+summary > .truncate {
+  min-width: 0;
+}
+
+/* scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* react-flow theming */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-minimap-background-color: var(--surface);
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-background-color-hover: var(--surface-2);
+  --xy-controls-button-color: var(--text);
+  --xy-controls-button-border-color: var(--border);
+  --xy-edge-stroke: var(--border-strong);
+  --xy-attribution-background-color: transparent;
+}
+.react-flow__controls {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow) !important;
+  border: 1px solid var(--border);
+}
+.react-flow__minimap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.react-flow__node.dragging .erd-table {
+  box-shadow: 0 20px 40px -12px rgb(105 79 253 / 0.35);
+}
+.react-flow__edge-path {
+  transition: stroke 0.15s, stroke-width 0.15s, opacity 0.15s;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 0.35s ease both;
+}
