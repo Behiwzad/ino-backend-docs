@@ -10,6 +10,7 @@ permissions:
   pages: write
   id-token: write
 
+# one deploy at a time; a newer push cancels a queued (not running) one
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -18,14 +19,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
-      # Gives base_path: "/<repo>" for a project site, "" for a custom domain / user site
+      # base_path: "/<repo>" for a project site, "" for a custom domain / user site
       - id: pages
         uses: actions/configure-pages@v5
 
@@ -44,7 +45,16 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
     steps:
+      # GitHub Pages sometimes answers "Deployment failed, try again later" — retry once
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
